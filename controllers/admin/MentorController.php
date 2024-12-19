@@ -21,6 +21,7 @@ class MentorController
     $mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $mentors;
   }
+
   public function getMentorById($id)
   {
     $conn = $this->db->connect();
@@ -34,43 +35,95 @@ class MentorController
     $mentor = $stmt->fetch(PDO::FETCH_ASSOC);
     return $mentor;
   }
+
+  private function generateId()
+  {
+    $conn = $this->db->connect();
+    $query = "SELECT id FROM mentors ORDER BY id DESC LIMIT 1";
+    $stmt = $conn->query($query);
+    $lastId = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($lastId) {
+      $numericPart = intval(substr($lastId['id'], 3)) + 1;
+      return 'MN' . str_pad($numericPart, 3, '0', STR_PAD_LEFT);
+    }
+
+    return 'MN001';
+  }
+
   public function createMentor($data)
   {
     $conn = $this->db->connect();
-    $query = "INSERT INTO mentors (name, email, phone, address, bio, image) VALUES (:name, :email, :phone, :address, :bio, :image)";
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':name', $data['name']);
-    $stmt->bindParam(':email', $data['email']);
-    $stmt->bindParam(':phone', $data['phone']);
-    $stmt->bindParam(':address', $data['address']);
-    $stmt->bindParam(':bio', $data['bio']);
-    $stmt->bindParam(':image ', $data['image']);
-    $stmt->execute();
-    return $stmt->rowCount();
+    $id = $this->generateId();
+
+    $query = "INSERT INTO mentors (id, fullname, specialization, phone, email) VALUES (:id, :fullname, :specialization, :phone, :email)";
+
+    try {
+      $stmt = $conn->prepare($query);
+      $stmt->bindParam(':id', $id);
+      $stmt->bindParam(':fullname', $data['fullname']);
+      $stmt->bindParam(':specialization', $data['specialization']);
+      $stmt->bindParam(':phone', $data['phone']);
+      $stmt->bindParam(':email', $data['email']);
+      $stmt->execute();
+
+      return [
+        'status' => 'success',
+        'redirect' => '../../admin/mentors.php',
+        'message' => 'Mentor created successful'
+      ];
+    } catch (PDOException $e) {
+      return [
+        'status' => 'error',
+        'message' => 'Mentor created failed: ' . $e->getMessage()
+      ];
+    }
   }
+
   public function updateMentor($id, $data)
   {
     $conn = $this->db->connect();
-    $query = "UPDATE mentors SET name = :name, email = :email, phone = :phone, address = :address, bio = :bio, image = :image WHERE id = :id";
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(': id', $id);
-    $stmt->bindParam(':name', $data['name']);
-    $stmt->bindParam(':email', $data['email']);
-    $stmt->bindParam(':phone', $data['phone']);
-    $stmt->bindParam(':address', $data['address']);
-    $stmt->bindParam(':bio', $data['bio']);
-    $stmt->bindParam(':image', $data['image']);
-    $stmt->execute();
-    return $stmt->rowCount();
-  }
+    $query = "UPDATE mentors SET fullname = :fullname, specialization = :specialization, phone = :phone, email = :email WHERE id = :id";
+    try {
+      $stmt = $conn->prepare($query);
+      $stmt->bindParam(':id', $id);
+      $stmt->bindParam(':fullname', $data['fullname']);
+      $stmt->bindParam(':specialization', $data['specialization']);
+      $stmt->bindParam(':phone', $data['phone']);
+      $stmt->bindParam(':email', $data['email']);
+      $stmt->execute();
 
+      return [
+        'status' => 'success',
+        'redirect' => '../mentors.php',
+        'message' => 'Mentor updated successful'
+      ];
+    } catch (PDOException $e) {
+      return [
+        'status' => 'error',
+        'message' => 'Mentor updated failed: ' . $e->getMessage()
+      ];
+    }
+  }
   public function deleteMentor($id)
   {
     $conn = $this->db->connect();
     $query = "DELETE FROM mentors WHERE id = :id";
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':id', $id);
-    $stmt->execute();
-    return $stmt->rowCount();
+
+    try {
+      $stmt = $conn->prepare($query);
+      $stmt->bindParam(':id', $id);
+      $stmt->execute();
+      return [
+        'status' => 'success',
+        'redirect' => '../../admin/mentors.php',
+        'message' => 'Mentor deleted successful'
+      ];
+    } catch (PDOException $e) {
+      return [
+        'status' => 'error',
+        'message' => 'Mentor deleted failed: ' . $e->getMessage()
+      ];
+    }
   }
 }

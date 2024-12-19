@@ -42,4 +42,14 @@ class IndexController
     $mentors = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $mentors[0]['total'];
   }
+
+  public function getOrder()
+  {
+    $conn = $this->db->connect();
+    $query = "SELECT COUNT(*) as total FROM orders";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    $memberships = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $memberships[0]['total'];
+  }
 }

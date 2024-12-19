@@ -6,19 +6,41 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 // var_dump($_SESSION['role']);
-require_once '../../controllers/LoginController.php';
-require_once '../../controllers/admin/MentorController.php';
+require_once '../../../controllers/LoginController.php';
+require_once '../../../controllers/admin/MentorController.php';
 
 
 $loginController = new LoginController();
 $mentorController = new MentorController();
-$mentors = $mentorController->getMentors();
-
+$mentorId = $_GET['id'];
+$mentor = $mentorController->getMentorById($mentorId);
 
 // Check if user is logged in and is admin
 if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
-  header('Location: ../../login.php');
+  header('Location: ../../../login.php');
   exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  $data = [
+    'fullname' => $_POST['fullname'],
+    'specialization' => $_POST['specialization'],
+    'phone' => $_POST['phone'],
+    'email' => $_POST['email']
+  ];
+
+  $result = $mentorController->updateMentor($mentorId, $data);
+
+  if ($result['status'] == 'success') {
+    $_SESSION['alert'] = [
+      'type' => 'success',
+      'message' => $result['message']
+    ];
+    header('Location: ../mentors.php');
+    exit();
+  } else {
+    $error = $result['message'];
+  }
 }
 ?>
 <!DOCTYPE html>
@@ -31,11 +53,11 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
     name="viewport" />
   <link
     rel="icon"
-    href="../../assets/img/kaiadmin/favicon.ico"
+    href="../../../assets/img/kaiadmin/favicon.ico"
     type="image/x-icon" />
 
   <!-- Fonts and icons -->
-  <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
+  <script src="../../../assets/js/plugin/webfont/webfont.min.js"></script>
   <script>
     WebFont.load({
       google: {
@@ -48,7 +70,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
           "Font Awesome 5 Brands",
           "simple-line-icons",
         ],
-        urls: ["../../assets/css/fonts.min.css"],
+        urls: ["../../../assets/css/fonts.min.css"],
       },
       active: function() {
         sessionStorage.fonts = true;
@@ -57,9 +79,9 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
   </script>
 
   <!-- CSS Files -->
-  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
-  <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/plugins.min.css" />
+  <link rel="stylesheet" href="../../../assets/css/kaiadmin.min.css" />
 
 
 </head>
@@ -71,9 +93,9 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
       <div class="sidebar-logo">
         <!-- Logo Header -->
         <div class="logo-header" data-background-color="dark">
-          <a href="./dashboard.php" class="logo">
+          <a href="../dashboard.php" class="logo">
             <img
-              src="../../assets/img/kaiadmin/logo_light.svg"
+              src="../../../assets/img/kaiadmin/logo_light.svg"
               alt="navbar brand"
               class="navbar-brand"
               height="20" />
@@ -96,7 +118,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
             <li class="nav-item">
-              <a href="./dashboard.php">
+              <a href="../dashboard.php">
                 <i class="fas fa-home"></i>
                 <p>Dashboard</p>
               </a>
@@ -116,16 +138,16 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
               <div class="collapse" id="base">
                 <ul class="nav nav-collapse">
                   <li class="active">
-                    <a href="./mentors.php">
+                    <a href="../mentors.php">
                       <span class="sub-item">Mentors</span>
                     </a>
                   </li>
                   <li>
-                    <a href="./memberships.php">
+                    <a href="../memberships.php">
                       <span class="sub-item">Memberships</span>
                     </a>
                   <li>
-                    <a href="./users.php">
+                    <a href="../users.php">
                       <span class="sub-item">Users</span>
                     </a>
                   </li>
@@ -133,25 +155,25 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
               </div>
             </li>
             <li class="nav-item">
-              <a href="./members.php">
+              <a href="../members.php">
                 <i class="fas fa-user-plus"></i>
                 <p>Members</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="./orders.php">
+              <a href="../orders.php">
                 <i class="fas fa-file"></i>
                 <p>Orders</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="./schedules.php">
+              <a href="../schedules.php">
                 <i class="fas fa-calendar-plus"></i>
                 <p>Schedules</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="./bookings.php">
+              <a href="../bookings.php">
                 <i class="fas fa-book"></i>
                 <p>Booking</p>
               </a>
@@ -167,9 +189,9 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
         <div class="main-header-logo">
           <!-- Logo Header -->
           <div class="logo-header" data-background-color="dark">
-            <a href="index.html" class="logo">
+            <a href="#" class="logo">
               <img
-                src="../../assets/img/kaiadmin/logo_light.svg"
+                src="../../../assets/img/kaiadmin/logo_light.svg"
                 alt="navbar brand"
                 class="navbar-brand"
                 height="20" />
@@ -279,7 +301,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                   aria-expanded="false">
                   <div class="avatar-sm">
                     <img
-                      src="../../assets/img/profile.jpg"
+                      src="../../../assets/img/profile.jpg"
                       alt="..."
                       class="avatar-img rounded-circle" />
                   </div>
@@ -294,7 +316,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                       <div class="user-box">
                         <div class="avatar-lg">
                           <img
-                            src="../../assets/img/profile.jpg"
+                            src="../../../assets/img/profile.jpg"
                             alt="image profile"
                             class="avatar-img rounded" />
                         </div>
@@ -302,7 +324,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                           <h4><?= $_SESSION['username']; ?></h4>
                           <p class="text-muted"><?= $_SESSION['email']; ?></p>
                           <a
-                            href="./profile.php"
+                            href="../profile.php"
                             class="btn btn-xs btn-secondary btn-sm">View Profile</a>
                           <a
                             href="#"
@@ -325,7 +347,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
             <h3 class="fw-bold mb-3">Mentors</h3>
             <ul class="breadcrumbs mb-3">
               <li class="nav-home">
-                <a href="./dashboard.php">
+                <a href="../mentors.php">
                   <i class="icon-home"></i>
                 </a>
               </li>
@@ -333,7 +355,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                 <i class="icon-arrow-right"></i>
               </li>
               <li class="nav-item">
-                <a href="#">Data Mentors</a>
+                <a href="./add-mentor.php">Edit Mentors</a>
               </li>
             </ul>
           </div>
@@ -341,74 +363,44 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
             <div class="col-md-12">
               <div class="card">
                 <div class="card-header">
-                  <div class="d-flex align-items-center">
-                    <h4 class="card-title">Mentors</h4>
-                    <a
-                      class="btn btn-primary btn-round ms-auto"
-                      href="./mentors/add-mentor.php">
-                      <i class="fa fa-plus"></i>
-                      Add Mentors
-                    </a>
-                  </div>
+                  <div class="card-title">Form Edit Mentor</div>
                 </div>
                 <div class="card-body">
-                  <div class="table-responsive">
-                    <table
-                      id="basic-datatables"
-                      class="display table table-striped table-hover">
-                      <thead>
-                        <tr>
-                          <th>Fullname</th>
-                          <th>Specialization</th>
-                          <th>Phone</th>
-                          <th>Email</th>
-                          <th>Created At</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tfoot>
-                        <tr>
-                          <th>Fullname</th>
-                          <th>Specialization</th>
-                          <th>Phone</th>
-                          <th>Email</th>
-                          <th>Created At</th>
-                          <th>Action</th>
-                        </tr>
-                      </tfoot>
-                      <tbody>
-                        <?php foreach ($mentors as $mentor) : ?>
-                          <tr>
-                            <td><?= $mentor['fullname'] ?></td>
-                            <td><?= $mentor['specialization'] ?></td>
-                            <td><?= $mentor['phone'] ?></td>
-                            <td><?= $mentor['email'] ?></td>
-                            <td><?= date('d M Y', strtotime($mentor['created_at']))  ?></td>
-                            <td>
-                              <div class="form-button-action">
-                                <a
-                                  type="button"
-                                  href=" ./mentors/edit-mentor.php?id=<?= $mentor['id'] ?>"
-                                  class="btn btn-link btn-warning btn-lg"
-                                  data-id="<?= $mentor['id'] ?>"
-                                  data-original-title="Edit Task">
-                                  <i class="fa fa-edit"></i>
-                                </a>
-                                <a
-                                  type="button"
-                                  href="#"
-                                  class="btn btn-link btn-danger delete-btn"
-                                  data-id="<?= $mentor['id'] ?>"
-                                  data-original-title="Remove">
-                                  <i class="fa fa-trash"></i>
-                                </a>
-                              </div>
-                            </td>
-                          </tr>
-                        <?php endforeach; ?>
-                      </tbody>
-                    </table>
+                  <div class="row">
+                    <div class="col-md-6 col-lg-6">
+                      <form action="" role="form" class="form-action" method="post">
+                        <div class="form-group">
+                          <label for="fullname">Fullname</label>
+                          <input type="text" class="form-control" id="fullname" name="fullname"
+                            value="<?= $mentor['fullname'] ?>" placeholder="Enter Fullname" />
+                        </div>
+
+                        <div class="form-group">
+                          <label for="specialization">Specialization</label>
+                          <input type="text" class="form-control" id="specialization" name="specialization"
+                            value="<?= $mentor['specialization'] ?>" placeholder="Enter specialization" />
+                        </div>
+
+                    </div>
+                    <div class="col-md-6 col-lg-6">
+                      <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="text" class="form-control" maxlength="13" id="phone" name="phone"
+                          value="<?= $mentor['phone'] ?>" placeholder="Enter Phone" />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                          value="<?= $mentor['email'] ?>" placeholder="Enter email" />
+                      </div>
+                    </div>
                   </div>
+                  <div class="mt-3 card-action">
+                    <button type="submit" class="btn btn-warning ">Update</button>
+                    <a href="../mentors.php" class="btn btn-danger">Cancel</a>
+                  </div>
+                  </form>
                 </div>
               </div>
             </div>
@@ -446,23 +438,20 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
     </div>
   </div>
 
-  <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
-  <script src="../../assets/js/core/popper.min.js"></script>
-  <script src="../../assets/js/core/bootstrap.min.js"></script>
+  <script src="../../../assets/js/core/jquery-3.7.1.min.js"></script>
+  <script src="../../../assets/js/core/popper.min.js"></script>
+  <script src="../../../assets/js/core/bootstrap.min.js"></script>
 
   <!-- jQuery Scrollbar -->
-  <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+  <script src="../../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
   <!-- Datatables -->
-  <script src="../../assets/js/plugin/datatables/datatables.min.js"></script>
+  <script src="../../../assets/js/plugin/datatables/datatables.min.js"></script>
   <!-- Kaiadmin JS -->
-  <script src="../../assets/js/kaiadmin.min.js"></script>
-  <script src="../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
+  <script src="../../../assets/js/kaiadmin.min.js"></script>
+  <!-- Sweet Alert -->
+  <script src="../../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
 
   <script>
-    $(document).ready(function() {
-      $("#basic-datatables").DataTable({});
-    });
-
     document.getElementById('logout-btn').addEventListener('click', function() {
       swal({
         title: 'Are you sure?',
@@ -480,56 +469,15 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
         }
       }).then((willLogout) => {
         if (willLogout) {
-          window.location.href = '../../logout.php';
+          window.location.href = '../../../logout.php';
         }
       });
     });
 
-    $(document).on('click', '.delete-btn', function(e) {
-      e.preventDefault();
-      const mentorId = $(this).data('id');
-
-
-      swal({
-        title: 'Are you sure?',
-        text: "This mentor will be permanently deleted!",
-        type: 'warning',
-        buttons: {
-          cancel: {
-            visible: true,
-            className: 'btn btn-danger'
-          },
-          confirm: {
-            text: 'Yes, delete it!',
-            className: 'btn btn-success'
-          }
-        }
-      }).then((willDelete) => {
-        if (willDelete) {
-          window.location.href = `./mentors/delete-mentor.php?id=${mentorId}`;
-        }
-      });
+    $(document).ready(function() {
+      $("#basic-datatables").DataTable({});
     });
   </script>
 </body>
 
 </html>
-
-<?php if (isset($_SESSION['alert'])): ?>
-  <script src="../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
-  <script>
-    swal({
-      title: "Success!",
-      text: "<?php echo $_SESSION['alert']['message']; ?>",
-      icon: "success",
-      buttons: {
-        confirm: {
-          className: "btn btn-success"
-        }
-      }
-    });
-  </script>
-<?php
-  unset($_SESSION['alert']);
-endif;
-?>
