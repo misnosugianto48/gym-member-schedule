@@ -5,7 +5,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../../model/Database.php';
 
-class MembershipController
+class OrderController
 {
   private $db;
   public function __construct()

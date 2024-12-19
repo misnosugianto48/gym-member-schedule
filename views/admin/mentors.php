@@ -358,6 +358,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                       class="display table table-striped table-hover">
                       <thead>
                         <tr>
+                          <th>No</th>
                           <th>Fullname</th>
                           <th>Specialization</th>
                           <th>Phone</th>
@@ -368,6 +369,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                       </thead>
                       <tfoot>
                         <tr>
+                          <th>No</th>
                           <th>Fullname</th>
                           <th>Specialization</th>
                           <th>Phone</th>
@@ -377,8 +379,10 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                         </tr>
                       </tfoot>
                       <tbody>
+                        <?php $counter = 1; ?>
                         <?php foreach ($mentors as $mentor) : ?>
                           <tr>
+                            <td><?= $counter++ ?></td>
                             <td><?= $mentor['fullname'] ?></td>
                             <td><?= $mentor['specialization'] ?></td>
                             <td><?= $mentor['phone'] ?></td>
