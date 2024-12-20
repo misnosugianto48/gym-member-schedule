@@ -363,7 +363,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                           <th>Specialization</th>
                           <th>Phone</th>
                           <th>Email</th>
-                          <th>Created At</th>
+                          <th>Status</th>
                           <th>Action</th>
                         </tr>
                       </thead>
@@ -374,7 +374,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                           <th>Specialization</th>
                           <th>Phone</th>
                           <th>Email</th>
-                          <th>Created At</th>
+                          <th>Status</th>
                           <th>Action</th>
                         </tr>
                       </tfoot>
@@ -387,7 +387,15 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                             <td><?= $mentor['specialization'] ?></td>
                             <td><?= $mentor['phone'] ?></td>
                             <td><?= $mentor['email'] ?></td>
-                            <td><?= date('d M Y', strtotime($mentor['created_at']))  ?></td>
+                            <?php if ($mentor['status'] == 'VIP') : ?>
+                              <td>
+                                <span class="badge bg-success">VIP</span>
+                              </td>
+                            <?php else : ?>
+                              <td>
+                                <span class="badge bg-default">STANDARD</span>
+                              </td>
+                            <?php endif; ?>
                             <td>
                               <div class="form-button-action">
                                 <a

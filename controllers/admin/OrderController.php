@@ -13,10 +13,10 @@ class OrderController
     $this->db = new Database();
   }
 
-  public function getMemberships()
+  public function getOrders()
   {
     $conn = $this->db->connect();
-    $query = "SELECT * FROM memberships";
+    $query = "SELECT orders.id, orders.total, orders.method, orders.status, members.fullname, memberships.name as memberships FROM orders INNER JOIN members ON members.id = orders.member_id INNER JOIN memberships ON memberships.id = orders.member_id";
     $stmt = $conn->prepare($query);
     $stmt->execute();
     $memberships = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -46,10 +46,10 @@ class OrderController
 
     if ($lastId) {
       $numericPart = intval(substr($lastId['id'], 3)) + 1;
-      return 'SB' . str_pad($numericPart, 3, '0', STR_PAD_LEFT);
+      return 'OD' . str_pad($numericPart, 3, '0', STR_PAD_LEFT);
     }
 
-    return 'SB001';
+    return 'OD001';
   }
 
   public function store($data)

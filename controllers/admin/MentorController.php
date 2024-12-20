@@ -56,7 +56,7 @@ class MentorController
     $conn = $this->db->connect();
     $id = $this->generateId();
 
-    $query = "INSERT INTO mentors (id, fullname, specialization, phone, email) VALUES (:id, :fullname, :specialization, :phone, :email)";
+    $query = "INSERT INTO mentors (id, fullname, specialization, phone, email, status) VALUES (:id, :fullname, :specialization, :phone, :email, :status)";
 
     try {
       $stmt = $conn->prepare($query);
@@ -65,6 +65,7 @@ class MentorController
       $stmt->bindParam(':specialization', $data['specialization']);
       $stmt->bindParam(':phone', $data['phone']);
       $stmt->bindParam(':email', $data['email']);
+      $stmt->bindParam(':status', $data['status']);
       $stmt->execute();
 
       return [
@@ -83,7 +84,7 @@ class MentorController
   public function updateMentor($id, $data)
   {
     $conn = $this->db->connect();
-    $query = "UPDATE mentors SET fullname = :fullname, specialization = :specialization, phone = :phone, email = :email WHERE id = :id";
+    $query = "UPDATE mentors SET fullname = :fullname, specialization = :specialization, phone = :phone, email = :email, status = :status WHERE id = :id";
     try {
       $stmt = $conn->prepare($query);
       $stmt->bindParam(':id', $id);
@@ -91,6 +92,7 @@ class MentorController
       $stmt->bindParam(':specialization', $data['specialization']);
       $stmt->bindParam(':phone', $data['phone']);
       $stmt->bindParam(':email', $data['email']);
+      $stmt->bindParam(':status', $data['status']);
       $stmt->execute();
 
       return [

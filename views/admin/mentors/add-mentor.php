@@ -24,7 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     'fullname' => $_POST['fullname'],
     'specialization' => $_POST['specialization'],
     'phone' => $_POST['phone'],
-    'email' => $_POST['email']
+    'email' => $_POST['email'],
+    'status' => $_POST['status']
   ];
 
   $result = $mentorController->createMentor($data);
@@ -409,6 +410,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                           id="email"
                           name="email"
                           placeholder="Enter email" />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="status">Status</label>
+                        <select name="status" id="status" class="form-control">
+                          <option value="Standard">Standard</option>
+                          <option value="VIP">VIP</option>
+                        </select>
                       </div>
                     </div>
                   </div>

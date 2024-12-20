@@ -11,7 +11,7 @@ require_once '../../../controllers/admin/MembershipController.php';
 
 
 $loginController = new LoginController();
-$membershipController = new membershipController();
+$membershipController = new MembershipController();
 $membershipId = $_GET['id'];
 $membership = $membershipController->getMembershipById($membershipId);
 

@@ -15,7 +15,7 @@ $loginController = new LoginController();
 // $mentorData = $indexController->getMentors();
 
 // Check if user is logged in and is admin
-if (!$loginController->isLoggedIn() || !$loginController->isUser()) {
+if (!$loginController->isLoggedIn() && !$loginController->isUser() && !$loginController->isActive()) {
   header('Location: ../../login.php');
   exit();
 }

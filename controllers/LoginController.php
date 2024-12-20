@@ -18,7 +18,7 @@ class LoginController
   {
     $conn = $this->db->connect();
 
-    $query = "SELECT id, username, email, password, role FROM users WHERE email = :email";
+    $query = "SELECT id, username, email, password, role, is_active FROM users WHERE email = :email";
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':email', $email);
     $stmt->execute();
@@ -30,15 +30,18 @@ class LoginController
       $_SESSION['email'] = $user['email'];
       $_SESSION['username'] = $user['username'];
       $_SESSION['role'] = $user['role'];
+      $_SESSION['is_active'] = $user['is_active'];
       $_SESSION['logged_in'] = true;
 
       // var_dump($_SESSION);
       // exit();
 
-      if ($user['role'] == 0) {
+      if ($user['role'] == 0 && $user['is_active'] !== 0) {
         return ['status' => 'success', 'redirect' => 'views/admin/dashboard.php'];
-      } else {
+      } else if ($user['is_active'] !== 0) {
         return ['status' => 'success', 'redirect' => 'views/user/dashboard.php'];
+      } else {
+        return ['status' => 'error', 'message' => 'Account is not active'];
       }
     }
 
@@ -65,5 +68,10 @@ class LoginController
   public function isUser()
   {
     return isset($_SESSION['role']) && $_SESSION['role'] == 1;
+  }
+
+  public function isActive()
+  {
+    return isset($_SESSION['is_active']) && $_SESSION['is_active'] == 1;
   }
 }
