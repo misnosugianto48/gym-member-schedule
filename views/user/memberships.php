@@ -6,60 +6,41 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 // var_dump($_SESSION['role']);
-require_once '../../../controllers/LoginController.php';
-require_once '../../../controllers/admin/ScheduleController.php';
-require_once '../../../controllers/admin/MentorController.php';
+require_once '../../controllers/LoginController.php';
+require_once '../../controllers/user/MembershipController.php';
+require_once '../../controllers/user/ProfileController.php';
+
 
 
 $loginController = new LoginController();
-$scheduleController = new ScheduleController();
-$mentorController = new MentorController();
-$mentors = $mentorController->getMentors();
+$membershipController = new MembershipController();
+$profileController = new ProfileController();
+$profile = $profileController->getProfile($_SESSION['user_id']);
+$activeMembership = $membershipController->getActiveMembership($_SESSION['user_id']);
+
 
 // Check if user is logged in and is admin
-if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
-  header('Location: ../../../login.php');
+if (!$loginController->isLoggedIn() || !$loginController->isUser()) {
+  header('Location: ../../login.php');
   exit();
 }
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  $data = [
-    'mentor_id' => $_POST['mentor_id'],
-    'start_at' => $_POST['start_at'],
-    'end_at' => $_POST['end_at'],
-    'date' => $_POST['date'],
-    'quota' => $_POST['quota'],
-  ];
-
-  $result = $scheduleController->store($data);
-
-  if ($result['status'] == 'success') {
-    $_SESSION['alert'] = [
-      'type' => 'success',
-      'message' => $result['message']
-    ];
-    header('Location: ' . $result['redirect']);
-    exit();
-  } else {
-    $error = $result['message'];
-  }
-}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <title>Schedules</title>
+  <title>Memberships</title>
   <meta
     content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
     name="viewport" />
   <link
     rel="icon"
-    href="../../../assets/img/kaiadmin/favicon.ico"
+    href="../../assets/img/kaiadmin/favicon.ico"
     type="image/x-icon" />
 
   <!-- Fonts and icons -->
-  <script src="../../../assets/js/plugin/webfont/webfont.min.js"></script>
+  <script src="../../assets/js/plugin/webfont/webfont.min.js"></script>
   <script>
     WebFont.load({
       google: {
@@ -72,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           "Font Awesome 5 Brands",
           "simple-line-icons",
         ],
-        urls: ["../../../assets/css/fonts.min.css"],
+        urls: ["../../assets/css/fonts.min.css"],
       },
       active: function() {
         sessionStorage.fonts = true;
@@ -81,9 +62,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   </script>
 
   <!-- CSS Files -->
-  <link rel="stylesheet" href="../../../assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="../../../assets/css/plugins.min.css" />
-  <link rel="stylesheet" href="../../../assets/css/kaiadmin.min.css" />
+  <link rel="stylesheet" href="../../assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../../assets/css/plugins.min.css" />
+  <link rel="stylesheet" href="../../assets/css/kaiadmin.min.css" />
 
 
 </head>
@@ -95,9 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <div class="sidebar-logo">
         <!-- Logo Header -->
         <div class="logo-header" data-background-color="dark">
-          <a href="../dashboard.php" class="logo">
+          <a href="./dashboard.php" class="logo">
             <img
-              src="../../../assets/img/kaiadmin/logo_light.svg"
+              src="../../assets/img/kaiadmin/logo_light.svg"
               alt="navbar brand"
               class="navbar-brand"
               height="20" />
@@ -120,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
             <li class="nav-item">
-              <a href="../dashboard.php">
+              <a href="./dashboard.php">
                 <i class="fas fa-home"></i>
                 <p>Dashboard</p>
               </a>
@@ -131,55 +112,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               </span>
               <h4 class="text-section">Action</h4>
             </li>
+
             <li class="nav-item">
-              <a data-bs-toggle="collapse" href="#base">
-                <i class="fas fa-layer-group"></i>
-                <p>Base</p>
-                <span class="caret"></span>
-              </a>
-              <div class="collapse" id="base">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="../mentors.php">
-                      <span class="sub-item">Mentors</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="../memberships.php">
-                      <span class="sub-item">Memberships</span>
-                    </a>
-                  <li>
-                    <a href="../users.php">
-                      <span class="sub-item">Users</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </li>
-            <li class="nav-item">
-              <a href="../members.php">
+              <a href="./memberships.php">
                 <i class="fas fa-user-plus"></i>
-                <p>Members</p>
+                <p>Memberships</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="../orders.php">
+              <a href="./payments.php">
                 <i class="fas fa-file"></i>
-                <p>Orders</p>
+                <p>Payments</p>
               </a>
             </li>
-            <li class="nav-item active">
-              <a href="../schedules.php">
+            <li class="nav-item">
+              <a href="./schedules.php">
                 <i class="fas fa-calendar-plus"></i>
                 <p>Schedules</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="../bookings.php">
-                <i class="fas fa-book"></i>
-                <p>Booking</p>
-              </a>
-            </li>
+
           </ul>
         </div>
       </div>
@@ -193,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           <div class="logo-header" data-background-color="dark">
             <a href="#" class="logo">
               <img
-                src="../../../assets/img/kaiadmin/logo_light.svg"
+                src="../../assets/img/kaiadmin/logo_light.svg"
                 alt="navbar brand"
                 class="navbar-brand"
                 height="20" />
@@ -303,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   aria-expanded="false">
                   <div class="avatar-sm">
                     <img
-                      src="../../../assets/img/profile.jpg"
+                      src="../../assets/img/profile.jpg"
                       alt="..."
                       class="avatar-img rounded-circle" />
                   </div>
@@ -318,7 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                       <div class="user-box">
                         <div class="avatar-lg">
                           <img
-                            src="../../../assets/img/profile.jpg"
+                            src="../../assets/img/profile.jpg"
                             alt="image profile"
                             class="avatar-img rounded" />
                         </div>
@@ -326,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                           <h4><?= $_SESSION['username']; ?></h4>
                           <p class="text-muted"><?= $_SESSION['email']; ?></p>
                           <a
-                            href="../profile.php"
+                            href="./profile.php"
                             class="btn btn-xs btn-secondary btn-sm">View Profile</a>
                           <a
                             href="#"
@@ -346,10 +298,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <div class="container">
         <div class="page-inner">
           <div class="page-header">
-            <h3 class="fw-bold mb-3">Schedules</h3>
+            <h3 class="fw-bold mb-3">Profile</h3>
             <ul class="breadcrumbs mb-3">
               <li class="nav-home">
-                <a href="../schedules.php">
+                <a href="./dashboard.php">
                   <i class="icon-home"></i>
                 </a>
               </li>
@@ -357,7 +309,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <i class="icon-arrow-right"></i>
               </li>
               <li class="nav-item">
-                <a href="./add.php">Add Schedules</a>
+                <a href="./memberships.php">Memberships</a>
               </li>
             </ul>
           </div>
@@ -365,136 +317,138 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="col-md-12">
               <div class="card">
                 <div class="card-header">
-                  <div class="card-title">Form Add Schedules</div>
+                  <h4 class="card-title">Active Membership</h4>
                 </div>
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col-md-6 col-lg-6">
-                      <form action="" role="form" class="form-action" method="post">
+                <?php if ($activeMembership): ?>
+                  <div class="card-body skew-shadow">
 
-                        <div class="form-group">
-                          <label for="mentor_id">Mentor</label>
-                          <select class="form-control" id="mentor_id" name="mentor_id">
-                            <?php foreach ($mentors as $mentor) : ?>
-                              <option value="<?= $mentor['id']; ?>"><?= $mentor['fullname']; ?></option>
-                            <?php endforeach; ?>
-                          </select>
+                    <h2 class="py-4 mb-0"><?= $activeMembership['membership_name'] ?></h2>
+                    <div class="row">
+                      <div class="col-8 pe-0">
+                        <h3 class="fw-bold mb-1"><?= $profile['fullname'] ?></h3>
+                        <div class="text-small text-uppercase fw-bold op-8">
+                          Member Name
                         </div>
-
-
-                        <div class="form-group">
-                          <label for="start_at">Start</label>
-                          <input
-                            type="time"
-                            class="form-control"
-                            id="start_at"
-                            name="start_at"
-                            placeholder="Enter Start" />
+                      </div>
+                      <div class="col-4 ps-0 text-end">
+                        <h3 class="fw-bold mb-1">
+                          <?= date('d/m/y', strtotime($activeMembership['created_at'] . ' + ' . intval($activeMembership['duration']) . ' months')) ?>
+                        </h3>
+                        <div class="text-small text-uppercase fw-bold op-8">
+                          Expired
                         </div>
-
-                    </div>
-                    <div class="col-md-6 col-lg-6">
-                      <div class="form-group">
-                        <label for="end_at">End</label>
-                        <input
-                          type="time"
-                          class="form-control"
-                          id="end_at"
-                          name="end_at"
-                          placeholder="Enter Start" />
-                      </div>
-
-                      <div class="form-group">
-                        <label for="date">Date</label>
-                        <input
-                          type="date"
-                          class="form-control"
-                          id="date"
-                          name="date"
-                          placeholder="Enter date" />
-                      </div>
-
-                      <div class="form-group">
-                        <label for="quota">Quota</label>
-                        <input
-                          type="number"
-                          class="form-control"
-                          id="quota"
-                          name="quota"
-                          placeholder="Enter quota"
-                          value="5" />
                       </div>
                     </div>
                   </div>
-                </div>
-                <div class="mt-3 card-action">
-                  <button type="submit" class="btn btn-success">Submit</button>
-                  <a href="../users.php" class="btn btn-danger">Cancel</a>
-                </div>
-                </form>
+                <?php else: ?>
+                  <div class="card-body">
+                    <div class="alert alert-warning">
+                      No active membership found. Please purchase a membership package.
+                    </div>
+                  </div>
+                <?php endif; ?>
               </div>
+
+
+              <!-- After the membership status card -->
+              <div class="card mt-4">
+                <div class="card-header">
+                  <h4 class="card-title">Available Membership Packages</h4>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <?php
+                    $memberships = $membershipController->getAllMemberships();
+                    foreach ($memberships as $membership): ?>
+                      <div class="col-md-4 mb-4">
+                        <div class="card-pricing2 card-primary">
+                          <div class="pricing-header">
+                            <h3 class="fw-bold mb-3"><?= $membership['name'] ?></h3>
+                            <span class="sub-title"><?= $membership['description'] ?></span>
+                          </div>
+                          <div class="price-value">
+                            <div class="value">
+                              <span class="currency">Rp</span>
+                              <span class="amount">
+                                <?php
+                                $price = $membership['price'];
+                                if ($price >= 1000000) {
+                                  echo number_format($price / 1000000, 1, ',', '.') . ' jt';
+                                } else {
+                                  echo number_format($price, 0, ',', '.');
+                                }
+                                ?>
+                              </span>
+                              <span class="month">/<?= $membership['duration'] ?></span>
+                            </div>
+                          </div>
+                          <ul class="pricing-content">
+                            <li>Duration: <?= $membership['duration'] ?></li>
+                            <li><?= $membership['description'] ?></li>
+                          </ul>
+                          <form action="./process_order.php" method="POST">
+                            <input type="hidden" name="membership_id" value="<?= $membership['id'] ?>">
+                            <input type="hidden" name="price" value="<?= $membership['price'] ?>">
+                            <button type="submit" class="btn btn-primary btn-border btn-lg w-75 fw-bold mb-3">
+                              Purchase Now
+                            </button>
+                          </form>
+
+                        </div>
+                      </div>
+                    <?php endforeach; ?>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
       </div>
+
+      <footer class="footer">
+        <div class="container-fluid d-flex justify-content-between">
+          <nav class="pull-left">
+            <ul class="nav">
+              <li class="nav-item">
+                <a class="nav-link" href="http://www.themekita.com">
+                  ThemeKita
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#"> Help </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#"> Licenses </a>
+              </li>
+            </ul>
+          </nav>
+          <div class="copyright">
+            2024, made with <i class="fa fa-heart heart text-danger"></i> by
+            <a href="http://www.themekita.com">ThemeKita</a>
+          </div>
+          <div>
+            Distributed by
+            <a target="_blank" href="https://themewagon.com/">ThemeWagon</a>.
+          </div>
+        </div>
+      </footer>
     </div>
-
-    <footer class="footer">
-      <div class="container-fluid d-flex justify-content-between">
-        <nav class="pull-left">
-          <ul class="nav">
-            <li class="nav-item">
-              <a class="nav-link" href="http://www.themekita.com">
-                ThemeKita
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#"> Help </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#"> Licenses </a>
-            </li>
-          </ul>
-        </nav>
-        <div class="copyright">
-          2024, made with <i class="fa fa-heart heart text-danger"></i> by
-          <a href="http://www.themekita.com">ThemeKita</a>
-        </div>
-        <div>
-          Distributed by
-          <a target="_blank" href="https://themewagon.com/">ThemeWagon</a>.
-        </div>
-      </div>
-    </footer>
-  </div>
   </div>
 
-  <script src="../../../assets/js/core/jquery-3.7.1.min.js"></script>
-  <script src="../../../assets/js/core/popper.min.js"></script>
-  <script src="../../../assets/js/core/bootstrap.min.js"></script>
+  <script src="../../assets/js/core/jquery-3.7.1.min.js"></script>
+  <script src="../../assets/js/core/popper.min.js"></script>
+  <script src="../../assets/js/core/bootstrap.min.js"></script>
 
   <!-- jQuery Scrollbar -->
-  <script src="../../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+  <script src="../../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
   <!-- Datatables -->
-  <script src="../../../assets/js/plugin/datatables/datatables.min.js"></script>
+  <script src="../../assets/js/plugin/datatables/datatables.min.js"></script>
   <!-- Kaiadmin JS -->
-  <script src="../../../assets/js/kaiadmin.min.js"></script>
+  <script src="../../assets/js/kaiadmin.min.js"></script>
   <!-- Sweet Alert -->
-  <script src="../../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
-  <script>
-    <?php if (isset($error)): ?>
-      swal({
-        title: "Error!",
-        text: "<?php echo $error; ?>",
-        icon: "error",
-        buttons: {
-          confirm: {
-            className: "btn btn-danger"
-          }
-        }
-      });
-    <?php endif; ?>
-  </script>
+  <script src="../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
+
   <script>
     document.getElementById('logout-btn').addEventListener('click', function() {
       swal({

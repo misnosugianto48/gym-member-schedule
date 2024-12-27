@@ -389,11 +389,11 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                             <td><?= $mentor['email'] ?></td>
                             <?php if ($mentor['status'] == 'VIP') : ?>
                               <td>
-                                <span class="badge bg-success">VIP</span>
+                                <span class="badge bg-warning">VIP</span>
                               </td>
                             <?php else : ?>
                               <td>
-                                <span class="badge bg-default">STANDARD</span>
+                                <span class="badge bg-primary">STANDARD</span>
                               </td>
                             <?php endif; ?>
                             <td>

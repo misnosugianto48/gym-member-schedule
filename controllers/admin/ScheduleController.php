@@ -58,7 +58,7 @@ class ScheduleController
     $conn = $this->db->connect();
     $id = $this->generateId();
 
-    $query = "INSERT INTO schedules (id, mentor_id, start_at, end_at, date) VALUES (:id, :mentor_id, :start_at, :end_at, :date)";
+    $query = "INSERT INTO schedules (id, mentor_id, start_at, end_at, date, quota) VALUES (:id, :mentor_id, :start_at, :end_at, :date, :quota)";
 
     try {
       $stmt = $conn->prepare($query);
@@ -67,6 +67,7 @@ class ScheduleController
       $stmt->bindParam(':start_at', $data['start_at']);
       $stmt->bindParam(':end_at', $data['end_at']);
       $stmt->bindParam(':date', $data['date']);
+      $stmt->bindParam(':quota', $data['quota']);
       $stmt->execute();
 
       return [
@@ -85,7 +86,7 @@ class ScheduleController
   public function update($id, $data)
   {
     $conn = $this->db->connect();
-    $query = "UPDATE schedules SET mentor_id = :mentor_id, start_at = :start_at, end_at = :end_at, date = :date, status = :status WHERE id = :id";
+    $query = "UPDATE schedules SET mentor_id = :mentor_id, start_at = :start_at, end_at = :end_at, date = :date, quota = :quota, status = :status WHERE id = :id";
     try {
       $stmt = $conn->prepare($query);
       $stmt->bindParam(':id', $id);
@@ -93,6 +94,7 @@ class ScheduleController
       $stmt->bindParam(':start_at', $data['start_at']);
       $stmt->bindParam(':end_at', $data['end_at']);
       $stmt->bindParam(':date', $data['date']);
+      $stmt->bindParam(':quota', $data['quota']);
       $stmt->bindParam(':status', $data['status']);
       $stmt->execute();
 

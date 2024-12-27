@@ -7,9 +7,15 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 // var_dump($_SESSION['role']);
 require_once '../../controllers/LoginController.php';
-// require_once '../../controllers/admin/IndexController.php';
+require_once '../../controllers/user/IndexController.php';
+
 
 $loginController = new LoginController();
+$indexController = new IndexController();
+
+$dashboardData = $indexController->getUserDashboardData($_SESSION['user_id']);
+
+
 // $indexController = new IndexController();
 // $userData = $indexController->getUsers();
 // $mentorData = $indexController->getMentors();
@@ -25,7 +31,7 @@ if (!$loginController->isLoggedIn() && !$loginController->isUser() && !$loginCon
 <html lang="en">
 
 <head>
-  <title>Admin Dashboard</title>
+  <title>User Dashboard</title>
   <meta
     content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
     name="viewport" />
@@ -94,7 +100,7 @@ if (!$loginController->isLoggedIn() && !$loginController->isUser() && !$loginCon
       <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
-            <li class="nav-item active">
+            <li class="nav-item">
               <a href="./dashboard.php">
                 <i class="fas fa-home"></i>
                 <p>Dashboard</p>
@@ -106,41 +112,17 @@ if (!$loginController->isLoggedIn() && !$loginController->isUser() && !$loginCon
               </span>
               <h4 class="text-section">Action</h4>
             </li>
+
             <li class="nav-item">
-              <a data-bs-toggle="collapse" href="#base">
-                <i class="fas fa-layer-group"></i>
-                <p>Base</p>
-                <span class="caret"></span>
-              </a>
-              <div class="collapse" id="base">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="./mentors.php">
-                      <span class="sub-item">Mentors</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="./memberships.php">
-                      <span class="sub-item">Memberships</span>
-                    </a>
-                  <li>
-                    <a href="./users.php">
-                      <span class="sub-item">Users</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </li>
-            <li class="nav-item">
-              <a href="./members.php">
+              <a href="./memberships.php">
                 <i class="fas fa-user-plus"></i>
-                <p>Members</p>
+                <p>Memberships</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="./orders.php">
+              <a href="./payments.php">
                 <i class="fas fa-file"></i>
-                <p>Orders</p>
+                <p>Payments</p>
               </a>
             </li>
             <li class="nav-item">
@@ -149,12 +131,7 @@ if (!$loginController->isLoggedIn() && !$loginController->isUser() && !$loginCon
                 <p>Schedules</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="./bookings.php">
-                <i class="fas fa-book"></i>
-                <p>Booking</p>
-              </a>
-            </li>
+
           </ul>
         </div>
       </div>
@@ -301,7 +278,7 @@ if (!$loginController->isLoggedIn() && !$loginController->isUser() && !$loginCon
                           <h4><?= $_SESSION['username']; ?></h4>
                           <p class="text-muted"><?= $_SESSION['email']; ?></p>
                           <a
-                            href="./profile.php"
+                            href="./profile.php?id=<?= $_SESSION['user_id'] ?>"
                             class="btn btn-xs btn-secondary btn-sm">View Profile</a>
                           <a
                             href="#"
@@ -326,279 +303,98 @@ if (!$loginController->isLoggedIn() && !$loginController->isUser() && !$loginCon
               <h3 class="fw-bold mb-3">Dashboard</h3>
               <h6 class="op-7 mb-2">Welcome <?php echo $_SESSION['username'] ?></h6>
             </div>
-            <div class="ms-md-auto py-2 py-md-0">
-              <a href="./add-users.php" class="btn btn-primary btn-round">Add Users</a>
-            </div>
+
           </div>
           <div class="row">
-            <div class="col-sm-6 col-md-3">
+            <!-- Membership Status Card -->
+            <div class="col-md-6">
               <div class="card card-stats card-round">
                 <div class="card-body">
                   <div class="row align-items-center">
                     <div class="col-icon">
-                      <div
-                        class="icon-big text-center icon-primary bubble-shadow-small">
-                        <i class="fas fa-users"></i>
+                      <div class="icon-big text-center icon-primary bubble-shadow-small">
+                        <i class="fas fa-crown"></i>
                       </div>
                     </div>
-                    <div class="col col-stats ms-3 ms-sm-0">
+                    <div class="col col-stats ml-3 ml-sm-0">
                       <div class="numbers">
-                        <p class="card-category">Users</p>
-                        <h4 class="card-title"><?= $userData['total']; ?></h4>
+                        <p class="card-category">Active Membership</p>
+                        <h4 class="card-title">
+                          <?= $dashboardData['membership']['name'] ?? 'No Active Membership' ?>
+                        </h4>
+                        <?php if ($dashboardData['membership']): ?>
+                          <p>Valid until: <?= date('d F Y', strtotime($dashboardData['membership']['created_at'] . ' + ' .
+                                            $dashboardData['membership']['duration_value'] . ' months')) ?></p>
+
+                        <?php endif; ?>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="col-sm-6 col-md-3">
-              <div class="card card-stats card-round">
-                <div class="card-body">
-                  <div class="row align-items-center">
-                    <div class="col-icon">
-                      <div
-                        class="icon-big text-center icon-info bubble-shadow-small">
-                        <i class="fas fa-user-check"></i>
-                      </div>
-                    </div>
-                    <div class="col col-stats ms-3 ms-sm-0">
-                      <div class="numbers">
-                        <p class="card-category">Subscribers</p>
-                        <h4 class="card-title">1303</h4>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-              <div class="card card-stats card-round">
-                <div class="card-body">
-                  <div class="row align-items-center">
-                    <div class="col-icon">
-                      <div
-                        class="icon-big text-center icon-success bubble-shadow-small">
-                        <i class="fas fa-luggage-cart"></i>
-                      </div>
-                    </div>
-                    <div class="col col-stats ms-3 ms-sm-0">
-                      <div class="numbers">
-                        <p class="card-category">Mentors</p>
-                        <h4 class="card-title"><?= $mentorData ?></h4>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-              <div class="card card-stats card-round">
-                <div class="card-body">
-                  <div class="row align-items-center">
-                    <div class="col-icon">
-                      <div
-                        class="icon-big text-center icon-secondary bubble-shadow-small">
-                        <i class="far fa-check-circle"></i>
-                      </div>
-                    </div>
-                    <div class="col col-stats ms-3 ms-sm-0">
-                      <div class="numbers">
-                        <p class="card-category">Orders</p>
-                        <h4 class="card-title">576</h4>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-4">
-              <div class="card card-round">
-                <div class="card-body">
-                  <div class="card-head-row card-tools-still-right">
-                    <div class="card-title">New Users</div>
-                    <div class="card-tools">
-                      <div class="dropdown">
-                        <button
-                          class="btn btn-icon btn-clean me-0"
-                          type="button"
-                          id="dropdownMenuButton"
-                          data-bs-toggle="dropdown"
-                          aria-haspopup="true"
-                          aria-expanded="false">
-                          <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                        <div
-                          class="dropdown-menu"
-                          aria-labelledby="dropdownMenuButton">
-                          <a class="dropdown-item" href="#">Action</a>
-                          <a class="dropdown-item" href="#">Another action</a>
-                          <a class="dropdown-item" href="#">Something else here</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card-list py-4">
-                    <?php foreach ($userData['users'] as $user): ?>
-                      <div class="item-list">
-                        <div class="avatar">
-                          <img src="../../assets/img/jm_denis.jpg" alt="..." class="avatar-img rounded-circle" />
-                        </div>
-                        <div class="info-user ms-3">
-                          <div class="username"><?= $user['username'] ?></div>
-                          <div class="status"><?= $user['role'] == 0 ? 'Admin' : 'User' ?></div>
-                        </div>
-                        <button class="btn btn-icon btn-link op-8 me-1">
-                          <i class="far fa-envelope"></i>
-                        </button>
-                        <button class="btn btn-icon btn-link btn-danger op-8">
-                          <i class="fas fa-ban"></i>
-                        </button>
-                      </div>
-                    <?php endforeach; ?>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-8">
-              <div class="card card-round">
+
+            <!-- Upcoming Training Card -->
+            <div class="col-md-12">
+              <div class="card">
                 <div class="card-header">
-                  <div class="card-head-row card-tools-still-right">
-                    <div class="card-title">Transaction History</div>
-                    <div class="card-tools">
-                      <div class="dropdown">
-                        <button
-                          class="btn btn-icon btn-clean me-0"
-                          type="button"
-                          id="dropdownMenuButton"
-                          data-bs-toggle="dropdown"
-                          aria-haspopup="true"
-                          aria-expanded="false">
-                          <i class="fas fa-ellipsis-h"></i>
-                        </button>
-                        <div
-                          class="dropdown-menu"
-                          aria-labelledby="dropdownMenuButton">
-                          <a class="dropdown-item" href="#">Action</a>
-                          <a class="dropdown-item" href="#">Another action</a>
-                          <a class="dropdown-item" href="#">Something else here</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <h4 class="card-title">Upcoming Training Sessions</h4>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body">
                   <div class="table-responsive">
-                    <!-- Projects table -->
-                    <table class="table align-items-center mb-0">
-                      <thead class="thead-light">
+                    <table class="table table-hover">
+                      <thead>
                         <tr>
-                          <th scope="col">Payment Number</th>
-                          <th scope="col" class="text-end">Date & Time</th>
-                          <th scope="col" class="text-end">Amount</th>
-                          <th scope="col" class="text-end">Status</th>
+                          <th>Date</th>
+                          <th>Time</th>
+                          <th>Mentor</th>
                         </tr>
                       </thead>
                       <tbody>
+                        <?php foreach ($dashboardData['schedules'] as $schedule): ?>
+                          <tr>
+                            <td><?= date('d F Y', strtotime($schedule['date'])) ?></td>
+                            <td><?= date('H:i', strtotime($schedule['start_at'])) ?> - <?= date('H:i', strtotime($schedule['end_at'])) ?></td>
+                            <td><?= $schedule['mentor_name'] ?></td>
+                          </tr>
+                        <?php endforeach; ?>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Payments Card -->
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header">
+                  <h4 class="card-title">Recent Payments</h4>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
                         <tr>
-                          <th scope="row">
-                            <button
-                              class="btn btn-icon btn-round btn-success btn-sm me-2">
-                              <i class="fa fa-check"></i>
-                            </button>
-                            Payment from #10231
-                          </th>
-                          <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                          <td class="text-end">$250.00</td>
-                          <td class="text-end">
-                            <span class="badge badge-success">Completed</span>
-                          </td>
+                          <th>Date</th>
+                          <th>Membership</th>
+                          <th>Amount</th>
+                          <th>Status</th>
                         </tr>
-                        <tr>
-                          <th scope="row">
-                            <button
-                              class="btn btn-icon btn-round btn-success btn-sm me-2">
-                              <i class="fa fa-check"></i>
-                            </button>
-                            Payment from #10231
-                          </th>
-                          <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                          <td class="text-end">$250.00</td>
-                          <td class="text-end">
-                            <span class="badge badge-success">Completed</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">
-                            <button
-                              class="btn btn-icon btn-round btn-success btn-sm me-2">
-                              <i class="fa fa-check"></i>
-                            </button>
-                            Payment from #10231
-                          </th>
-                          <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                          <td class="text-end">$250.00</td>
-                          <td class="text-end">
-                            <span class="badge badge-success">Completed</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">
-                            <button
-                              class="btn btn-icon btn-round btn-success btn-sm me-2">
-                              <i class="fa fa-check"></i>
-                            </button>
-                            Payment from #10231
-                          </th>
-                          <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                          <td class="text-end">$250.00</td>
-                          <td class="text-end">
-                            <span class="badge badge-success">Completed</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">
-                            <button
-                              class="btn btn-icon btn-round btn-success btn-sm me-2">
-                              <i class="fa fa-check"></i>
-                            </button>
-                            Payment from #10231
-                          </th>
-                          <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                          <td class="text-end">$250.00</td>
-                          <td class="text-end">
-                            <span class="badge badge-success">Completed</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">
-                            <button
-                              class="btn btn-icon btn-round btn-success btn-sm me-2">
-                              <i class="fa fa-check"></i>
-                            </button>
-                            Payment from #10231
-                          </th>
-                          <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                          <td class="text-end">$250.00</td>
-                          <td class="text-end">
-                            <span class="badge badge-success">Completed</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">
-                            <button
-                              class="btn btn-icon btn-round btn-success btn-sm me-2">
-                              <i class="fa fa-check"></i>
-                            </button>
-                            Payment from #10231
-                          </th>
-                          <td class="text-end">Mar 19, 2020, 2.45pm</td>
-                          <td class="text-end">$250.00</td>
-                          <td class="text-end">
-                            <span class="badge badge-success">Completed</span>
-                          </td>
-                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php foreach ($dashboardData['payments'] as $payment): ?>
+                          <tr>
+                            <td><?= date('d F Y', strtotime($payment['created_at'])) ?></td>
+                            <td><?= $payment['membership_name'] ?></td>
+                            <td>Rp <?= number_format($payment['total'], 0, ',', '.') ?></td>
+                            <td>
+                              <span class="badge bg-<?= $payment['status'] == 'PAID' ? 'success' : 'warning' ?>">
+                                <?= $payment['status'] ?>
+                              </span>
+                            </td>
+                          </tr>
+                        <?php endforeach; ?>
                       </tbody>
                     </table>
                   </div>

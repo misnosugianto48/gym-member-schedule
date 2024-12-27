@@ -341,68 +341,59 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
             <div class="col-md-12">
               <div class="card">
                 <div class="card-header">
-                  <div class="d-flex align-items-center">
-                    <h4 class="card-title">Orders</h4>
-                  </div>
+                  <h4 class="card-title">Order Management</h4>
                 </div>
                 <div class="card-body">
                   <div class="table-responsive">
-                    <table
-                      id="basic-datatables"
-                      class="display table table-striped table-hover">
+                    <table id="order-table" class="table table-hover">
                       <thead>
                         <tr>
-                          <th>No</th>
-                          <th>Name</th>
+                          <th>Order ID</th>
+                          <th>Member</th>
                           <th>Membership</th>
-                          <th>Total</th>
-                          <th>Method</th>
+                          <th>Amount</th>
                           <th>Status</th>
-                          <th>Created At</th>
+                          <th>Payment Proof</th>
+                          <th>Date</th>
                           <th>Action</th>
                         </tr>
                       </thead>
-                      <tfoot>
-                        <tr>
-                          <th>No</th>
-                          <th>Name</th>
-                          <th>Membership</th>
-                          <th>Total</th>
-                          <th>Method</th>
-                          <th>Status</th>
-                          <th>Created At</th>
-                          <th>Action</th>
-                        </tr>
-                      </tfoot>
                       <tbody>
-                        <?php $counter = 1; ?>
-                        <?php foreach ($orders as $order) : ?>
+                        <?php foreach ($orders as $order): ?>
                           <tr>
-                            <td><?= $counter++ ?></td>
-                            <td><?= $mentor['fullname'] ?></td>
-                            <td><?= $mentor['specialization'] ?></td>
-                            <td><?= $mentor['phone'] ?></td>
-                            <td><?= $mentor['email'] ?></td>
-                            <td><?= date('d M Y', strtotime($mentor['created_at']))  ?></td>
+                            <td><?= $order['id'] ?></td>
+                            <td><?= $order['member_name'] ?></td>
+                            <td><?= $order['membership_name'] ?></td>
+                            <td>Rp <?= number_format($order['total'], 0, ',', '.') ?></td>
                             <td>
-                              <div class="form-button-action">
-                                <a
-                                  type="button"
-                                  href=" ./orderd/edit-order.php?id=<?= $order['id'] ?>"
-                                  class="btn btn-link btn-warning btn-lg"
-                                  data-id="<?= $order['id'] ?>"
-                                  data-original-title="Edit Task">
-                                  <i class="fa fa-edit"></i>
-                                </a>
-                                <a
-                                  type="button"
-                                  href="#"
-                                  class="btn btn-link btn-danger delete-btn"
-                                  data-id="<?= $order['id'] ?>"
-                                  data-original-title="Remove">
-                                  <i class="fa fa-trash"></i>
-                                </a>
-                              </div>
+                              <span class="badge bg-<?=
+                                                    $order['status'] == 'PAID' ? 'success' : ($order['status'] == 'PENDING' ? 'warning' : 'danger')
+                                                    ?>">
+                                <?= $order['status'] ?>
+                              </span>
+                            </td>
+
+                            <td>
+                              <?php if ($order['payment_proof']): ?>
+                                <img src="data:image/jpeg;base64,<?= base64_encode($order['payment_proof']) ?>"
+                                  class="img-thumbnail"
+                                  style="width: 100px; height: 100px; cursor: pointer"
+                                  onclick="showFullImage(this.src)"
+                                  alt="Payment Proof">
+                              <?php else: ?>
+                                <span class="badge bg-secondary">No proof uploaded</span>
+                              <?php endif; ?>
+                              </td< /td>
+                            <td><?= date('d F Y H:i', strtotime($order['created_at'])) ?></td>
+                            <td>
+                              <?php if ($order['status'] == 'PENDING'): ?>
+                                <button class="btn btn-success btn-sm" onclick="confirmPayment('<?= $order['id'] ?>')">
+                                  Confirm
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="rejectPayment('<?= $order['id'] ?>')">
+                                  Reject
+                                </button>
+                              <?php endif; ?>
                             </td>
                           </tr>
                         <?php endforeach; ?>
@@ -459,6 +450,69 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
   <script src="../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
 
   <script>
+    function showFullImage(src) {
+      swal({
+        content: {
+          element: "img",
+          attributes: {
+            src: src,
+            style: "max-width: 100%"
+          }
+        },
+        buttons: {
+          confirm: {
+            className: 'btn btn-success'
+          }
+        }
+      });
+    }
+
+    function confirmPayment(orderId) {
+      swal({
+        title: 'Confirm Payment',
+        text: "Are you sure to confirm this payment?",
+        type: 'warning',
+        buttons: {
+          cancel: {
+            visible: true,
+            text: 'Cancel',
+            className: 'btn btn-danger'
+          },
+          confirm: {
+            text: 'Yes, Confirm',
+            className: 'btn btn-success'
+          }
+        }
+      }).then((confirm) => {
+        if (confirm) {
+          window.location.href = `orders/confirm.php?id=${orderId}`;
+        }
+      });
+    }
+
+    function rejectPayment(orderId) {
+      swal({
+        title: 'Reject Payment',
+        text: "Are you sure to reject this payment?",
+        type: 'warning',
+        buttons: {
+          cancel: {
+            visible: true,
+            text: 'Cancel',
+            className: 'btn btn-danger'
+          },
+          confirm: {
+            text: 'Yes, Reject',
+            className: 'btn btn-success'
+          }
+        }
+      }).then((confirm) => {
+        if (confirm) {
+          window.location.href = `orders/reject.php?id=${orderId}`;
+        }
+      });
+    }
+
     $(document).ready(function() {
       $("#basic-datatables").DataTable({});
     });

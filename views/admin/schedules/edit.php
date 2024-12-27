@@ -35,9 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     'end_at' => $_POST['end_at'],
     'date' => $_POST['date'],
     'status' => $_POST['status'],
+    'quota' => $_POST['quota'],
   ];
 
-  $result = $scheduleController->update($id, $data);
+  $result = $scheduleController->update($scheId, $data);
 
   if ($result['status'] == 'success') {
     $_SESSION['alert'] = [
@@ -391,6 +392,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="form-group">
                           <label for="start_at">Start</label>
                           <input type="time" class="form-control" id="start_at" name="start_at" value="<?= $schedule['start_at']; ?>" />
+
+                        </div>
+
+                        <div class="form-group">
+                          <label for="quota">Quota</label>
+                          <input type="numbe" class="form-control" id="quota" name="quota" value="<?= $schedule['quota']; ?>" />
 
                         </div>
 

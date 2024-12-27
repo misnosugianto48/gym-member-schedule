@@ -7,25 +7,26 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 // var_dump($_SESSION['role']);
 require_once '../../controllers/LoginController.php';
-require_once '../../controllers/admin/BookingController.php';
-
+require_once '../../controllers/user/PaymentController.php';
 
 $loginController = new LoginController();
-$bookController = new BookingController();
-$books = $bookController->getBookings();
+$paymentController = new PaymentController();
 
-
-// Check if user is logged in and is admin
-if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
+if (!$loginController->isLoggedIn() || !$loginController->isUser()) {
   header('Location: ../../login.php');
   exit();
 }
+
+$pendingPayments = $paymentController->getPendingPayments($_SESSION['user_id']);
+$paymentHistory = $paymentController->getPaymentHistory($_SESSION['user_id']);
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <title>Bookings</title>
+  <title>Payments</title>
   <meta
     content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
     name="viewport" />
@@ -107,41 +108,17 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
               </span>
               <h4 class="text-section">Action</h4>
             </li>
+
             <li class="nav-item">
-              <a data-bs-toggle="collapse" href="#base">
-                <i class="fas fa-layer-group"></i>
-                <p>Base</p>
-                <span class="caret"></span>
-              </a>
-              <div class="collapse" id="base">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="./mentors.php">
-                      <span class="sub-item">Mentors</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="./memberships.php">
-                      <span class="sub-item">Memberships</span>
-                    </a>
-                  <li>
-                    <a href="./users.php">
-                      <span class="sub-item">Users</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </li>
-            <li class="nav-item">
-              <a href="./members.php">
+              <a href="./memberships.php">
                 <i class="fas fa-user-plus"></i>
-                <p>Members</p>
+                <p>Memberships</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="./orders.php">
+              <a href="./payments.php">
                 <i class="fas fa-file"></i>
-                <p>Orders</p>
+                <p>Payments</p>
               </a>
             </li>
             <li class="nav-item">
@@ -150,12 +127,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                 <p>Schedules</p>
               </a>
             </li>
-            <li class="nav-item class=" active"">
-              <a href="./bookings.php">
-                <i class="fas fa-book"></i>
-                <p>Booking</p>
-              </a>
-            </li>
+
           </ul>
         </div>
       </div>
@@ -167,7 +139,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
         <div class="main-header-logo">
           <!-- Logo Header -->
           <div class="logo-header" data-background-color="dark">
-            <a href="index.html" class="logo">
+            <a href="#" class="logo">
               <img
                 src="../../assets/img/kaiadmin/logo_light.svg"
                 alt="navbar brand"
@@ -322,7 +294,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
       <div class="container">
         <div class="page-inner">
           <div class="page-header">
-            <h3 class="fw-bold mb-3">Bookings</h3>
+            <h3 class="fw-bold mb-3">Profile</h3>
             <ul class="breadcrumbs mb-3">
               <li class="nav-home">
                 <a href="./dashboard.php">
@@ -333,50 +305,147 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                 <i class="icon-arrow-right"></i>
               </li>
               <li class="nav-item">
-                <a href="#">Data Bookings</a>
+                <a href="./memberships.php">Memberships</a>
               </li>
             </ul>
           </div>
           <div class="row">
             <div class="col-md-12">
+
               <div class="card">
                 <div class="card-header">
-                  <h4 class="card-title">Booking Management</h4>
+                  <h4 class="card-title">Pending Payments</h4>
+                </div>
+                <div class="card-body">
+                  <?php if ($pendingPayments): ?>
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Order ID</th>
+                            <th>Membership</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Payment Proof</th>
+                            <th>Created Date</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ($pendingPayments as $payment): ?>
+                            <tr>
+                              <td><?= $payment['id'] ?></td>
+                              <td><?= $payment['membership_name'] ?></td>
+                              <td>Rp <?= number_format($payment['total'], 0, ',', '.') ?></td>
+                              <td><?= $payment['status'] ?></td>
+                              <td>
+                                <?php if ($payment['payment_proof']): ?>
+                                  <img src="data:image/jpeg;base64,<?= base64_encode($payment['payment_proof']) ?>"
+                                    class="img-thumbnail"
+                                    style="width: 100px; height: 100px; cursor: pointer"
+                                    onclick="showFullImage(this.src)"
+                                    alt="Payment Proof">
+                                <?php else: ?>
+                                  <span class="badge bg-secondary">No proof uploaded</span>
+                                <?php endif; ?>
+                              </td>
+                              <td><?= date('d F Y H:i', strtotime($payment['created_at'])) ?></td>
+                              <td>
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal<?= $payment['id'] ?>">
+                                  Upload Payment Proof
+                                </button>
+                                <button class="btn btn-info btn-sm" onclick="showPaymentInstructions('<?= $payment['id'] ?>')">
+                                  Info Pay
+                                </button>
+                              </td>
+                            </tr>
+
+                            <!-- Upload Modal for each payment -->
+                            <div class="modal fade" id="uploadModal<?= $payment['id'] ?>" tabindex="-1">
+                              <div class="modal-dialog">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title">Upload Payment Proof</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <div class="row">
+                                      <div class="col-md-12">
+                                        <div class="form-group">
+                                          <label>Order ID</label>
+                                          <input type="text" class="form-control" value="<?= $payment['id'] ?>" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                          <label>Amount</label>
+                                          <input type="text" class="form-control" value="Rp <?= number_format($payment['total'], 0, ',', '.') ?>" readonly>
+                                        </div>
+                                        <!-- Inside the modal form -->
+                                        <form action="upload_payment.php" method="POST" enctype="multipart/form-data">
+                                          <input type="hidden" name="order_id" value="<?= $payment['id'] ?>">
+                                          <div class="form-group">
+                                            <label>Bank Transfer To</label>
+                                            <input type="text" class="form-control" value="BCA - 1234567890 (GYM NAME)" readonly>
+                                          </div>
+                                          <div class="form-group">
+                                            <label>Total Payment</label>
+                                            <input type="text" class="form-control" value="Rp <?= number_format($payment['total'], 0, ',', '.') ?>" readonly>
+                                          </div>
+                                          <div class="form-group">
+                                            <label>Upload Payment Proof</label>
+                                            <input type="file" name="payment_proof" class="form-control" accept="image/*" required>
+                                            <small class="text-muted">Accepted formats: JPG, PNG, JPEG</small>
+                                          </div>
+                                          <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary">Submit Payment</button>
+                                          </div>
+                                        </form>
+
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  <?php else: ?>
+                    <div class="alert alert-info">No pending payments found.</div>
+                  <?php endif; ?>
+                </div>
+              </div>
+
+              <!-- Payment History Section -->
+              <div class="card mt-4">
+                <div class="card-header">
+                  <h4 class="card-title">Payment History</h4>
                 </div>
                 <div class="card-body">
                   <div class="table-responsive">
-                    <table id="booking-table" class="table table-hover">
+                    <table class="table table-hover">
                       <thead>
                         <tr>
-                          <th>Booking ID</th>
-                          <th>Member</th>
-                          <th>Mentor</th>
-                          <th>Date</th>
-                          <th>Time</th>
+                          <th>Order ID</th>
+                          <th>Membership</th>
+                          <th>Amount</th>
                           <th>Status</th>
-                          <th>Action</th>
+                          <th>Payment Date</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <?php foreach ($books as $booking): ?>
+                        <?php foreach ($paymentHistory as $history): ?>
                           <tr>
-                            <td><?= $booking['id'] ?></td>
-                            <td><?= $booking['member_name'] ?></td>
-                            <td><?= $booking['mentor_name'] ?></td>
-                            <td><?= date('d F Y', strtotime($booking['date'])) ?></td>
-                            <td><?= date('H:i', strtotime($booking['start_at'])) ?> - <?= date('H:i', strtotime($booking['end_at'])) ?></td>
+                            <td><?= $history['id'] ?></td>
+                            <td><?= $history['membership_name'] ?></td>
+                            <td>Rp <?= number_format($history['total'], 0, ',', '.') ?></td>
                             <td>
-                              <span class="badge bg-<?= $booking['schedule_status'] == 'COMPLETED' ? 'success' : 'warning' ?>">
-                                <?= $booking['schedule_status'] ?>
+                              <span class="badge bg-<?= $history['status'] == 'PAID' ? 'success' : 'danger' ?>">
+                                <?= $history['status'] ?>
                               </span>
                             </td>
-                            <td>
-                              <?php if ($booking['schedule_status'] == 'SCHEDULED'): ?>
-                                <button class="btn btn-success btn-sm" onclick="completeBooking('<?= $booking['id'] ?>')">
-                                  Complete
-                                </button>
-                              <?php endif; ?>
-                            </td>
+                            <td><?= date('d F Y H:i', strtotime($history['updated_at'])) ?></td>
                           </tr>
                         <?php endforeach; ?>
                       </tbody>
@@ -384,6 +453,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -429,44 +499,26 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
   <script src="../../assets/js/plugin/datatables/datatables.min.js"></script>
   <!-- Kaiadmin JS -->
   <script src="../../assets/js/kaiadmin.min.js"></script>
+  <!-- Sweet Alert -->
   <script src="../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
 
   <script>
-    function completeBooking(bookingId) {
+    function showFullImage(src) {
       swal({
-        title: 'Complete Booking',
-        text: "Mark this booking as completed?",
-        type: 'warning',
+        content: {
+          element: "img",
+          attributes: {
+            src: src,
+            style: "max-width: 100%"
+          }
+        },
         buttons: {
-          cancel: {
-            visible: true,
-            text: 'Cancel',
-            className: 'btn btn-danger'
-          },
           confirm: {
-            text: 'Yes, Complete',
             className: 'btn btn-success'
           }
         }
-      }).then((confirm) => {
-        if (confirm) {
-          window.location.href = `bookings/complete.php?id=${bookingId}`;
-        }
       });
     }
-
-    $(document).ready(function() {
-      $('#booking-table').DataTable({
-        order: [
-          [3, 'desc'],
-          [4, 'asc']
-        ]
-      });
-    });
-
-    $(document).ready(function() {
-      $("#basic-datatables").DataTable({});
-    });
 
     document.getElementById('logout-btn').addEventListener('click', function() {
       swal({
@@ -490,36 +542,45 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
       });
     });
 
-    $(document).on('click', '.delete-btn', function(e) {
-      e.preventDefault();
-      const mentorId = $(this).data('id');
-
-
+    $(document).ready(function() {
+      $("#basic-datatables").DataTable({});
+    });
+  </script>
+  <script>
+    function showPaymentInstructions(orderId) {
       swal({
-        title: 'Are you sure?',
-        text: "This mentor will be permanently deleted!",
-        type: 'warning',
+        title: "Payment Instructions",
+        text: "Please transfer to:\nBank BCA\nAccount: 1234567890\nName: GYM Member\n\nAfter payment, please contact admin for confirmation.",
+        icon: "info",
         buttons: {
-          cancel: {
-            visible: true,
-            className: 'btn btn-danger'
-          },
           confirm: {
-            text: 'Yes, delete it!',
+            text: "OK",
             className: 'btn btn-success'
           }
         }
-      }).then((willDelete) => {
-        if (willDelete) {
-          window.location.href = `./mentors/delete-mentor.php?id=${mentorId}`;
+      });
+    }
+  </script>
+  <script>
+    function showPaymentInstructions(orderId) {
+      swal({
+        title: "Payment Instructions",
+        text: "Please transfer to:\nBank BCA\nAccount: 1234567890\nName: GYM Member\n\nAfter payment, please contact admin for confirmation.",
+        icon: "info",
+        buttons: {
+          confirm: {
+            text: "OK",
+            className: 'btn btn-success'
+          }
         }
       });
-    });
+    }
   </script>
 </body>
 
 </html>
 
+<!-- After session check, before HTML -->
 <?php if (isset($_SESSION['alert'])): ?>
   <script src="../../assets/js/plugin/sweetalert/sweetalert.min.js"></script>
   <script>

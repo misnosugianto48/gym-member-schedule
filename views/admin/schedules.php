@@ -366,6 +366,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                           <th>Time</th>
                           <th>Date</th>
                           <th>Status</th>
+                          <th>Quota</th>
                           <th>Action</th>
                         </tr>
                       </thead>
@@ -377,6 +378,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                           <th>Time</th>
                           <th>Date</th>
                           <th>Status</th>
+                          <th>Quota</th>
                           <th>Action</th>
                         </tr>
                       </tfoot>
@@ -399,6 +401,7 @@ if (!$loginController->isLoggedIn() || !$loginController->isAdmin()) {
                                 <span class="badge bg-info">SCHEDULED</span>
                               </td>
                             <?php endif; ?>
+                            <td><?= $s['remaining'] . '/' . $s['quota'] ?></td>
                             <td>
                               <div class="form-button-action">
                                 <a

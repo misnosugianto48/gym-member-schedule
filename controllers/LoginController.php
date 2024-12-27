@@ -37,7 +37,10 @@ class LoginController
       // exit();
 
       if ($user['role'] == 0 && $user['is_active'] !== 0) {
-        return ['status' => 'success', 'redirect' => 'views/admin/dashboard.php'];
+        return [
+          'status' => 'success',
+          'redirect' => 'views/admin/dashboard.php'
+        ];
       } else if ($user['is_active'] !== 0) {
         return ['status' => 'success', 'redirect' => 'views/user/dashboard.php'];
       } else {
